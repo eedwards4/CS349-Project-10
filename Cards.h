@@ -43,11 +43,11 @@ public:
     }
 
     Card& operator=(const Card& card) = default;
-    bool operator==(const Card& card) { return rank == card.rank && suit == card.suit; }
-    bool operator<(const Card& card) { return rank < card.rank; }
+    bool operator==(const Card& card) const { return rank == card.rank && suit == card.suit; }
+    bool operator<(const Card& card) const { return rank < card.rank; }
 
-    bool hasRank(Rank r) { return rank == r; };
-    bool hasSuit(Suit s) { return suit == s; };
+    bool hasRank(Rank r) const { return rank == r; };
+    bool hasSuit(Suit s) const { return suit == s; };
 private:
     Rank rank;
     Suit suit;
@@ -69,9 +69,10 @@ public:
     static void compare(const Hand&, const Deck&);
     static int numSuit(const Hand&, const Deck&, Card::Suit);
     static int numRank(const Hand&, const Deck&, Card::Rank);
+    static Hand commonCards(const Hand&, const Deck&);
 
 private:
-    enum { HIGH_CARD, PAIR, TWO_PAIR, THREE_OF_A_KIND, STRAIGHT, FLUSH, FOUR_OF_A_KIND, STRAIGHT_FLUSH } ;
+    enum { HIGH_CARD, PAIR, TWO_PAIR, THREE_OF_A_KIND, STRAIGHT, FLUSH, FOUR_OF_A_KIND, STRAIGHT_FLUSH };
 };
 
 

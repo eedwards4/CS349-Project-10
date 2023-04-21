@@ -1,5 +1,5 @@
 //
-// Created by Ethan Edwards on 4/7/2023.
+// Created by evane on 4/14/2023.
 //
 
 #ifndef UNTITLED_COMMONLIB_H
@@ -11,7 +11,7 @@
 
 using namespace std;
 
-class commonLib {
+class CommonLib {
 public:
     // Function to initialize input and output files
     static void initFiles(ifstream& infile, ofstream& outfile, int argc, char* argv[], const string& progName = "program");

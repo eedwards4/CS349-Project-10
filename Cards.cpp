@@ -3,13 +3,21 @@
 //
 
 #include "Cards.h"
+static const int TOTAL_SUITS = 4;
+static const int TOTAL_RANKS = 13;
 
 void CardCounter::compare(const Hand &hand, const Deck &deck) {
-    int suitCounts[4] = { 0, 0, 0, 0 }
-    for (int i = CLUBS; i < DIAMONDS; i++) {
-        suitCounts[i] = numSuit(i); // i should be interepreted by compiler as Suit { 0, 1, 2, 3 }
-    }
+    int suitCounts[TOTAL_SUITS] = { 0 };
+    int rankCounts[TOTAL_RANKS] = { 0 };
 
+    for (int s : suitCounts)
+        suitCounts[s] = numSuit(hand, deck, (Card::Suit)s);
+
+    for (int r : rankCounts)
+        rankCounts[r] = numRank(hand, deck, (Card::Rank)r);
+
+    // Now that we have the number of occurrences for each rank and suit,
+    // we can determine more about the value of hand with draws from deck
 }
 
 int CardCounter::numRank(const Hand &hand, const Deck &deck, Card::Rank rank) {

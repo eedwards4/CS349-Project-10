@@ -3,7 +3,7 @@
 //
 
 #include <vector>
-#include <queue>
+#include <deque>
 #include <string>
 
 #ifndef CS349_PROJECT_10_CARDS_H
@@ -25,15 +25,24 @@ public:
         suit = card.suit;
     }
 
-    Card(const std::string& str) {
+    explicit Card(const std::string& str) {
+        if (str.length() == 2) {
+            int numRankVal = str[0] - '0';
+            int alphRankVal = std::toupper(str[0]) - 'A';
+            int suitVal = std::toupper(str[1]) - 'A';
+            int NUM_NUMBERS = 9, NUM_ALPHAS = 26;
 
+            if (numRankVal >= 0 && numRankVal <= NUM_NUMBERS)
+                rank = (Rank)numRankVal;
+            else if (alphRankVal >= 0 && alphRankVal <= NUM_ALPHAS)
+                rank = (Rank)alphRankVal;
+
+            if (suitVal >= 0 && suitVal <= NUM_ALPHAS)
+                suit = (Suit)suitVal;
+        }
     }
 
-    Card& operator=(const Card& card) {
-        rank = card.rank;
-        suit = card.suit;
-    }
-
+    Card& operator=(const Card& card) = default;
     bool operator==(const Card& card) { return rank == card.rank && suit == card.suit; }
     bool operator<(const Card& card) { return rank < card.rank; }
 
@@ -49,10 +58,9 @@ public:
     Hand();
 };
 
-class Deck : public std::queue<Card> {
+class Deck : public std::deque<Card> {
 public:
     Deck();
-    // Make iteration method?
 };
 
 

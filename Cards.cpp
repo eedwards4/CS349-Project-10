@@ -6,10 +6,40 @@
 static const int TOTAL_SUITS = 4;
 static const int TOTAL_RANKS = 13;
 
-void CardCounter::compare(const Hand &hand, const Deck &deck) {
+
+std::string CardCounter::strHandType(CardCounter::WIN_HANDS hand) {
+    switch (hand) {
+        case HIGH_CARD:
+            return "highest-card";
+        case PAIR:
+            return "pair";
+        case TWO_PAIR:
+            return "two-pair";
+        case THREE_OF_A_KIND:
+            return "three-of-a-kind";
+        case STRAIGHT:
+            return "straight";
+        case FLUSH:
+            return "flush";
+        case FOUR_OF_A_KIND:
+            return "four-of-a-kind";
+        case STRAIGHT_FLUSH:
+            return "straight-flush";
+        default:
+            return "failure";
+    }
+}
+
+CardCounter::WIN_HANDS CardCounter::compare(const Hand &hand, const Deck &deck) {
     int suitCounts[TOTAL_SUITS] = { 0 };
     int rankCounts[TOTAL_RANKS] = { 0 };
+    Hand sharedCards = commonCards(hand, deck);
     /*int matchCounts[]; Maybe an array of the number of matches for each card could be useful? */
+
+    for (Hand h : sharedCards.sequences()) {
+        if (h.size() == 5)
+            return STRAIGHT_FLUSH;
+    }
 
     for (int s : suitCounts)
         suitCounts[s] = numSuit(hand, deck, (Card::Suit)s);
@@ -19,7 +49,7 @@ void CardCounter::compare(const Hand &hand, const Deck &deck) {
 
     // Now that we have the number of occurrences for each rank and suit,
     // we can determine more about the value of hand with draws from deck
-
+    return HIGH_CARD;
 }
 
 int CardCounter::numRank(const Hand &hand, const Deck &deck, Card::Rank rank) {
@@ -58,5 +88,40 @@ Hand CardCounter::commonCards(const Hand &hand, const Deck &deck) {
         }
     }
     return matchedCards;
+}
+
+/*
+ * Return a vector of all possible sequences in the calling object.
+ */
+std::vector<Hand> Hand::sequences() const {
+    std::vector<Hand> sequences;
+    Hand sortedSelf = *this;
+    Card lastCard = sortedSelf.at(0);
+    int seqLen = 1, numSeq = 0;
+    auto seqStart = sortedSelf.begin();
+
+    std::sort(sortedSelf.begin(), sortedSelf.end());
+
+    for (auto it =sortedSelf.begin() + 1; it != sortedSelf.end(); it++) {
+        if (seqStart->rankAsInt() - lastCard.rankAsInt() == 1) {
+            sequences.emplace_back(lastCard); // add a new set of sequences
+            lastCard = *seqStart;
+            seqStart++;
+            seqLen++;
+            while (seqStart->rankAsInt() - lastCard.rankAsInt() == 1 && seqStart != sortedSelf.end()) {
+                if (seqLen > 5)
+                    break;
+                sequences.at(numSeq).push_back(lastCard); // append cards to continuing sequence
+                lastCard = *seqStart;
+                seqStart++;
+                seqLen++;
+            }
+            seqLen = 1;
+            numSeq++;
+        }
+        seqStart = it;
+        lastCard = *it;
+    }
+    return sequences;
 }
 

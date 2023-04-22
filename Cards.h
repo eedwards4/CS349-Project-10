@@ -5,6 +5,7 @@
 #include <vector>
 #include <deque>
 #include <string>
+#include <algorithm>
 
 #ifndef CS349_PROJECT_10_CARDS_H
 #define CS349_PROJECT_10_CARDS_H
@@ -32,19 +33,26 @@ public:
             int suitVal = std::toupper(str[1]) - 'A';
             int NUM_NUMBERS = 9, NUM_ALPHAS = 26;
 
+            // Convert rank based on string index 0
             if (numRankVal >= 0 && numRankVal <= NUM_NUMBERS)
                 rank = (Rank)numRankVal;
-            else if (alphRankVal >= 0 && alphRankVal <= NUM_ALPHAS)
+            if (alphRankVal >= 0 && alphRankVal <= NUM_ALPHAS)
                 rank = (Rank)alphRankVal;
 
+            // Convert suit based on string index 1
             if (suitVal >= 0 && suitVal <= NUM_ALPHAS)
                 suit = (Suit)suitVal;
         }
     }
 
     Card& operator=(const Card& card) = default;
+
     bool operator==(const Card& card) const { return rank == card.rank && suit == card.suit; }
+    bool operator!=(const Card& card) const { return rank != card.rank && suit != card.suit; }
     bool operator<(const Card& card) const { return rank < card.rank; }
+
+    int rankAsInt() { return rank; }
+    int suitAsInt() { return suit; }
 
     bool hasRank(Rank r) const { return rank == r; };
     bool hasSuit(Suit s) const { return suit == s; };
@@ -56,6 +64,13 @@ private:
 class Hand : public std::vector<Card> {
 public:
     Hand();
+    explicit Hand(const Card &c) { push_back(c); }
+    explicit Hand(const std::vector<Card> &vc) {
+        this->clear();
+        for (const Card &c : vc)
+            push_back(c);
+    }
+    std::vector<Hand> sequences() const;
 };
 
 class Deck : public std::deque<Card> {
@@ -66,13 +81,12 @@ public:
 
 class CardCounter {
 public:
-    static void compare(const Hand&, const Deck&);
+    typedef enum { HIGH_CARD, PAIR, TWO_PAIR, THREE_OF_A_KIND, STRAIGHT, FLUSH, FOUR_OF_A_KIND, STRAIGHT_FLUSH } WIN_HANDS;
+    static WIN_HANDS compare(const Hand&, const Deck&);
     static int numSuit(const Hand&, const Deck&, Card::Suit);
     static int numRank(const Hand&, const Deck&, Card::Rank);
     static Hand commonCards(const Hand&, const Deck&);
-
-private:
-    enum { HIGH_CARD, PAIR, TWO_PAIR, THREE_OF_A_KIND, STRAIGHT, FLUSH, FOUR_OF_A_KIND, STRAIGHT_FLUSH };
+    static std::string strHandType(WIN_HANDS);
 };
 
 

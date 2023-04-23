@@ -33,14 +33,23 @@ namespace CardCounter {
  */
     std::string evalHandType(CardComparer evaluate, const Hand& hand, const Deck &deck) {
         HAND_TYPE highest = HIGH_CARD, temp;
-        int numDraws = 0;
+        int numDraws = 0, numDiscards = 0, discardPos;
         Hand tempHand = hand;
-        do {
-            tempHand.push_back(deck.at(numDraws));
-            temp = evaluate(tempHand);
-            if (highest < temp) highest = temp;
-            numDraws++;
-        } while (numDraws < deck.size());
+        for (int i = 0; i < hand.size(); i++) { // perform draws by discarding elements in left-to-right order,
+                                                // before replacing them, doing so for all 5 draws in all 5 starting
+                                                // discard positions. Does not account for drawing in other orderings.
+            discardPos = i;
+            do {
+                for (int j = numDiscards; j >= 0; j--){ // discard cards and replace them with drawn cards
+                    tempHand[discardPos] = deck[numDraws];
+                    discardPos = discardPos + 1 < hand.size() ? discardPos + 1 : 0; // wrap discardPos around hand
+                }
+                temp = evaluate(tempHand); // use passed method to evaluate hand_types
+                if (highest < temp) highest = temp;
+                numDraws++;
+                numDiscards++;
+            } while (numDraws < deck.size()); // continue until all cards are drawn
+        }
         return handTypeToStr(highest);
     }
 

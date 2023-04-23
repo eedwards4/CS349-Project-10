@@ -33,21 +33,25 @@ namespace CardCounter {
  */
     std::string evalHandType(CardComparer evaluate, const Hand& hand, const Deck &deck) {
         HAND_TYPE highest = HIGH_CARD, temp;
-        int numDraws = 0, numDiscards = 0, discardPos;
+        int numDraws = 0, discardPos;
         Hand tempHand = hand;
+        Deck tempDeck = deck;
         for (int i = 0; i < hand.size(); i++) { // perform draws by discarding elements in left-to-right order,
                                                 // before replacing them, doing so for all 5 draws in all 5 starting
                                                 // discard positions. Does not account for drawing in other orderings.
             discardPos = i;
             do {
-                for (int j = numDiscards; j >= 0; j--){ // discard cards and replace them with drawn cards
-                    tempHand[discardPos] = deck[numDraws];
+                for (int j = numDraws; j > 0 && !tempDeck.empty(); j--){ // discard cards and replace them with drawn cards
+                    tempHand[discardPos] = tempDeck.front();
                     discardPos = discardPos + 1 < hand.size() ? discardPos + 1 : 0; // wrap discardPos around hand
+                    tempDeck.pop_front();
                 }
                 temp = evaluate(tempHand); // use passed method to evaluate hand_types
                 if (highest < temp) highest = temp;
                 numDraws++;
-                numDiscards++;
+                tempHand = hand;
+                tempDeck = deck;
+                discardPos = i;
             } while (numDraws < deck.size()); // continue until all cards are drawn
         }
         return handTypeToStr(highest);
@@ -55,6 +59,7 @@ namespace CardCounter {
 
 /*
  * Returns a Hand containing the matching cards from the passed hand and deck
+ * Badly implemented atm. Does not draw cards with replacement.
  */
     Hand commonCards(const Hand &hand, const Deck &deck) {
         Hand matchedCards;

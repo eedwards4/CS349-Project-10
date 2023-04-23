@@ -16,7 +16,7 @@ int main(int argc, char* argv[]) {
     Hand hand;
     Deck deck;
 
-    for (int i = 9; i <= 13; i++) {
+    for (int i = 8; i < 13; i++) {
         hand.emplace_back((Rank) i, DIAMONDS);
         deck.emplace_front((Rank)(i - 5), CLUBS);
     }

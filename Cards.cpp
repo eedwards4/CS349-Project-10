@@ -3,11 +3,8 @@
 //
 
 #include "Cards.h"
-static const int TOTAL_SUITS = 4;
-static const int TOTAL_RANKS = 13;
 
-
-std::string CardCounter::strHandType(CardCounter::WIN_HANDS hand) {
+std::string CardCounter::handTypeToStr(CardCounter::HAND_TYPE hand) {
     switch (hand) {
         case HIGH_CARD:
             return "highest-card";
@@ -30,48 +27,22 @@ std::string CardCounter::strHandType(CardCounter::WIN_HANDS hand) {
     }
 }
 
-CardCounter::WIN_HANDS CardCounter::compare(const Hand &hand, const Deck &deck) {
-    int suitCounts[TOTAL_SUITS] = { 0 };
-    int rankCounts[TOTAL_RANKS] = { 0 };
-    Hand sharedCards = commonCards(hand, deck);
-    /*int matchCounts[]; Maybe an array of the number of matches for each card could be useful? */
-
-    for (Hand h : sharedCards.sequences()) {
-        if (h.size() == 5)
-            return STRAIGHT_FLUSH;
-    }
-
-    for (int s : suitCounts)
-        suitCounts[s] = numSuit(hand, deck, (Card::Suit)s);
-
-    for (int r : rankCounts)
-        rankCounts[r] = numRank(hand, deck, (Card::Rank)r);
-
-    // Now that we have the number of occurrences for each rank and suit,
-    // we can determine more about the value of hand with draws from deck
-    return HIGH_CARD;
-}
-
-int CardCounter::numRank(const Hand &hand, const Deck &deck, Card::Rank rank) {
-    int counter = 0;
-    for (const Card &c : hand)
-        if (c.hasRank(rank))
-            counter++;
-    for (const Card &c : deck)
-        if (c.hasRank(rank))
-            counter++;
-    return counter;
-}
-
-int CardCounter::numSuit(const Hand &hand, const Deck &deck, Card::Suit suit) {
-    int counter = 0;
-    for (const Card &c : hand)
-        if (c.hasSuit(suit))
-            counter++;
-    for (const Card &c : deck)
-        if (c.hasSuit(suit))
-            counter++;
-    return counter;
+/*
+ * Draw elements from deck into hand by order, one by one, and invoke the evaluate method on hand each time
+ * as the hand eventually grows to a total union of hand and deck. Record calculated hand types and return the
+ * highest scoring among them.
+ */
+std::string CardCounter::evalHandType(CardCounter::CardComparer evaluate, const Hand& hand, const Deck &deck) {
+    HAND_TYPE highest = HIGH_CARD, temp;
+    int numDraws = 0;
+    Hand tempHand = hand;
+    do {
+        tempHand.push_back(deck.at(numDraws));
+        temp = evaluate(tempHand);
+        if (highest < temp) highest = temp;
+        numDraws++;
+    } while (numDraws < deck.size());
+    return handTypeToStr(highest);
 }
 
 /*
@@ -91,20 +62,20 @@ Hand CardCounter::commonCards(const Hand &hand, const Deck &deck) {
 }
 
 /*
- * Return a vector of all possible sequences in the calling object.
+ * Return a vector of all possible handSequences in the calling object.
  */
-std::vector<Hand> Hand::sequences() const {
+std::vector<Hand> CardCounter::handSequences(const Hand &hand) {
     std::vector<Hand> sequences;
-    Hand sortedSelf = *this;
+    Hand sortedSelf = hand;
     Card lastCard = sortedSelf.at(0);
     int seqLen = 1, numSeq = 0;
     auto seqStart = sortedSelf.begin();
 
     std::sort(sortedSelf.begin(), sortedSelf.end());
 
-    for (auto it =sortedSelf.begin() + 1; it != sortedSelf.end(); it++) {
+    for (auto it = sortedSelf.begin() + 1; it != sortedSelf.end(); it++) {
         if (seqStart->rankAsInt() - lastCard.rankAsInt() == 1) {
-            sequences.emplace_back(lastCard); // add a new set of sequences
+            sequences.emplace_back(lastCard); // add a new set of handSequences
             lastCard = *seqStart;
             seqStart++;
             seqLen++;

@@ -45,6 +45,11 @@ public:
         }
     }
 
+    Card(Rank r, Suit s) {
+        rank = r;
+        suit = s;
+    }
+
     Card& operator=(const Card& card) = default;
 
     bool operator==(const Card& card) const { return rank == card.rank && suit == card.suit; }
@@ -63,30 +68,37 @@ private:
 
 class Hand : public std::vector<Card> {
 public:
-    Hand();
+    Hand() = default;
     explicit Hand(const Card &c) { push_back(c); }
     explicit Hand(const std::vector<Card> &vc) {
         this->clear();
         for (const Card &c : vc)
             push_back(c);
     }
-    std::vector<Hand> sequences() const;
 };
 
 class Deck : public std::deque<Card> {
 public:
-    Deck();
+    Deck() = default;
+    explicit Deck(const Card &c) { push_front(c); }
+    explicit Deck(const std::deque<Card> &dd) {
+        this->clear();
+        for (const Card &c : dd)
+            push_front(c);
+    }
 };
 
 
 class CardCounter {
 public:
-    typedef enum { HIGH_CARD, PAIR, TWO_PAIR, THREE_OF_A_KIND, STRAIGHT, FLUSH, FOUR_OF_A_KIND, STRAIGHT_FLUSH } WIN_HANDS;
-    static WIN_HANDS compare(const Hand&, const Deck&);
-    static int numSuit(const Hand&, const Deck&, Card::Suit);
-    static int numRank(const Hand&, const Deck&, Card::Rank);
+    typedef enum { HIGH_CARD, PAIR, TWO_PAIR, THREE_OF_A_KIND, STRAIGHT, FLUSH, FOUR_OF_A_KIND, STRAIGHT_FLUSH } HAND_TYPE;
+    typedef HAND_TYPE (*CardComparer)(const Hand&);
+
+    static std::vector<Hand> handSequences(const Hand&);
     static Hand commonCards(const Hand&, const Deck&);
-    static std::string strHandType(WIN_HANDS);
+    static std::string evalHandType(CardComparer evaluate, const Hand &hand, const Deck &deck);
+
+    static std::string handTypeToStr(HAND_TYPE hand);
 };
 
 

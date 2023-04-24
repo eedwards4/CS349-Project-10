@@ -2,7 +2,7 @@
 
 namespace CardCounter {
     // Set of all possible orders to discard a hand when drawing up to 5 cards
-    std::vector<std::vector<int>> DISCARD_PERMUTATIONS ={
+    const std::vector<const std::vector<int>> DISCARD_PERMUTATIONS = {
             {0, 1, 2, 3, 4},
             {0, 1, 2, 4, 3},
             {0, 1, 3, 2, 4},
@@ -69,12 +69,11 @@ namespace CardCounter {
         int numDraws = 0;
         Hand tempHand = hand;
         Deck tempDeck = deck;
-        for (CardComparer eval: evalMethods) {
-            for (auto discardOrder: DISCARD_PERMUTATIONS) { // use lookup table of permutations of all possible draw orders
+        for (CardComparer eval : evalMethods) {
+            for (auto discardOrder : DISCARD_PERMUTATIONS) { // use lookup table of permutations of all possible draw orders
                 auto discardPos = discardOrder.begin(); // set discardPos to iterator through discard order permutations
                 do {
-                    for (int j = numDraws;
-                         j > 0 && !tempDeck.empty(); j--) { // discard cards and replace them with drawn cards
+                    for (int j = numDraws; j > 0 && !tempDeck.empty(); j--) { // discard cards and replace them with drawn cards
                         tempHand[*discardPos] = tempDeck.front();
                         tempDeck.pop_front();
                         discardPos++;
@@ -154,7 +153,7 @@ namespace CardCounter {
         int numRanks[TOTAL_RANKS] = { 0 };
         int mostMatches = 0;
         for (int i = 0; i < TOTAL_RANKS; i++) {
-            for (const Card &c: hand)
+            for (const Card &c : hand)
                 numRanks[i] += c.hasRank((Rank) i);
             if (mostMatches < numRanks[i]) mostMatches = numRanks[i];
         }

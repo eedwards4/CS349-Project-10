@@ -34,6 +34,8 @@ int main(int argc, char* argv[]) {
         deck.clear();
     }
 
+    infile.close();
+    outfile.close();
     return 0;
 }
 

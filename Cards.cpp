@@ -180,7 +180,7 @@ namespace CardCounter {
                     tempHand = hand;
                     tempDeck = deck;
                     discardPos = discardOrder.begin();
-                } while (numDraws < deck.size()); // continue until all cards are drawn}
+                } while (numDraws < deck.size()); // continue until all cards are drawn
                 numDraws = 0; // reset numDraws
             }
         }
@@ -191,11 +191,9 @@ namespace CardCounter {
  * Return a hand of the longest sequence in the passed parameter.
  */
     Hand sequence(const Hand &hand) {
-        Hand sequence;
-        Hand sortedSelf = hand;
-        Card lastCard = sortedSelf.at(0);
-        int seqLen = 1, MAX_SEQ_LEN = 5;
-        auto seqStart = sortedSelf.begin() + 1;
+        Hand sequence(hand.front()), temp(hand.front()), sortedSelf = hand;
+        Card lastCard = sortedSelf.front();
+        int MAX_SEQ_LEN = 5;
         auto cardsInSequence = [](const Card &last, const Card &curr) {
             int rankDiff = curr.rankAsInt() - last.rankAsInt();
             return rankDiff == (int)Rank::ACE - (int)Rank::FIVE || rankDiff == 1; // The ACE - FIVE figure comes from
@@ -206,22 +204,22 @@ namespace CardCounter {
                                                                                   // ACE - FIVE when the sequence is valid.
         };
 
+        if (hand.size() == 1)
+            return hand;
+
         std::sort(sortedSelf.begin(), sortedSelf.end());
 
-        if (cardsInSequence(lastCard, *seqStart)) {
-            sequence.emplace_back(lastCard); // add a new set of sequence
-            lastCard = *seqStart;
-            seqStart++;
-            seqLen++;
+        for (auto seqStart = sortedSelf.begin() + 1; seqStart != sortedSelf.end(); seqStart++) {
             while (cardsInSequence(lastCard, *seqStart)) { // Count up sequence until end
-                if (seqLen >= MAX_SEQ_LEN) // Sequences capped at length of 5
+                if (temp.size() >= MAX_SEQ_LEN) // Sequences capped at length of 5
                     break;
-                sequence.push_back(lastCard); // append cards to continuing sequence
+                temp.push_back(*seqStart); // append cards to continuing sequence
                 lastCard = *seqStart;
                 if (seqStart + 1 != sortedSelf.end()) seqStart++;
-                else sequence.push_back(*seqStart);
-                seqLen++;
             }
+            if (temp.size() > sequence.size())
+                sequence = temp;
+            temp = Hand(*seqStart); // Set first card of next sequence temp will hold
         }
 
         return sequence;

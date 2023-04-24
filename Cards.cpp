@@ -2,13 +2,15 @@
 
 namespace CardCounter {
     using enum HAND_TYPE;
+    const int TOTAL_RANKS = 13;
+    const int TOTAL_SUITS = 4;
 
     std::string handTypeToStr(HAND_TYPE hand) {
         switch (hand) {
             case HIGH_CARD:
                 return "highest-card";
             case PAIR:
-                return "pair";
+                return "one-pair";
             case TWO_PAIR:
                 return "two-pair";
             case THREE_OF_A_KIND:
@@ -17,6 +19,8 @@ namespace CardCounter {
                 return "straight";
             case FLUSH:
                 return "flush";
+            case FULL_HOUSE:
+                return "full-house";
             case FOUR_OF_A_KIND:
                 return "four-of-a-kind";
             case STRAIGHT_FLUSH:
@@ -75,55 +79,85 @@ namespace CardCounter {
     }
 
 /*
- * Return a vector of all possible handSequences in the calling object.
+ * Return a vector of all possible sequence in the calling object.
  */
-    std::vector<Hand> handSequences(const Hand &hand) {
-        std::vector<Hand> sequences;
+    Hand sequence(const Hand &hand) {
+        Hand sequence;
         Hand sortedSelf = hand;
         Card lastCard = sortedSelf.at(0);
-        int seqLen = 1, numSeq = 0;
-        auto seqStart = sortedSelf.begin();
+        int seqLen = 1, MAX_SEQ_LEN = 5;
+        auto seqStart = sortedSelf.begin() + 1;
+        auto cardsInSequence = [](const Card &last, const Card &curr) {
+            int rankDiff = curr.rankAsInt() - last.rankAsInt();
+            return rankDiff == (int)Rank::ACE - (int)Rank::FIVE || rankDiff == 1; // The ACE - FIVE figure comes from
+                                                                                  // the state of a sequence with low ACE.
+                                                                                  // The sorted hand will be ordered:
+                                                                                  // TWO, THREE, FOUR, FIVE, ACE when read
+                                                                                  // by loop below, so the rankDiff is
+                                                                                  // ACE - FIVE when the sequence is valid.
+        };
 
         std::sort(sortedSelf.begin(), sortedSelf.end());
 
-        for (auto it = sortedSelf.begin() + 1; it != sortedSelf.end(); it++) {
-            if (seqStart->rankAsInt() - lastCard.rankAsInt() == 1) {
-                sequences.emplace_back(lastCard); // add a new set of handSequences
+        if (cardsInSequence(lastCard, *seqStart)) {
+            sequence.emplace_back(lastCard); // add a new set of sequence
+            lastCard = *seqStart;
+            seqStart++;
+            seqLen++;
+            while (cardsInSequence(lastCard, *seqStart)) { // Count up sequence until end
+                if (seqLen >= MAX_SEQ_LEN) // Sequences capped at length of 5
+                    break;
+                sequence.push_back(lastCard); // append cards to continuing sequence
                 lastCard = *seqStart;
-                seqStart++;
+                if (seqStart + 1 != sortedSelf.end()) seqStart++;
+                else sequence.push_back(*seqStart);
                 seqLen++;
-                while (seqStart->rankAsInt() - lastCard.rankAsInt() == 1 && seqStart != sortedSelf.end()) {
-                    if (seqLen > 5)
-                        break;
-                    sequences.at(numSeq).push_back(lastCard); // append cards to continuing sequence
-                    lastCard = *seqStart;
-                    seqStart++;
-                    seqLen++;
-                }
-                seqLen = 1;
-                numSeq++;
             }
-            seqStart = it;
-            lastCard = *it;
         }
-        return sequences;
+
+        return sequence;
     }
 
-    HAND_TYPE straightFlush(const Hand& hand) {
-        for (const Hand &h : handSequences(hand)) {
-            if (h.size() == 5)
-                return STRAIGHT_FLUSH;
+    HAND_TYPE straights(const Hand &hand) {
+        int STRAIGHT_LEN = 5;
+        Hand h = sequence(hand);
+        if (h.size() == STRAIGHT_LEN) {
+            for (auto it = h.begin() + 1; it != h.end(); it++) {
+                if (!(it - 1)->sharesSuit(*it))
+                    return STRAIGHT;
+            }
+            return STRAIGHT_FLUSH;
         }
         return HIGH_CARD;
     }
 
-    HAND_TYPE fourOfAKind(const Hand &hand) {
-        int numSuits[4] = { 0 };
-        for (int i = 0; i < 4; i++) {
+    HAND_TYPE flush(const Hand &hand) {
+        for (auto it = hand.begin() + 1; it != hand.end(); it++) {
+            if (!(it - 1)->sharesSuit(*it))
+                return HIGH_CARD;
+        }
+        return FLUSH;
+    }
+
+    HAND_TYPE rankMatches(const Hand &hand) {
+        int numRanks[TOTAL_RANKS] = { 0 };
+        int mostMatches = 0;
+        for (int i = 0; i < TOTAL_RANKS; i++) {
             for (const Card &c: hand)
-                numSuits[i] += c.hasSuit((Suit) i);
-            if (numSuits[i] == 4)
+                numRanks[i] += c.hasRank((Rank) i);
+            if (mostMatches < numRanks[i]) mostMatches = numRanks[i];
+        }
+        switch (mostMatches) {
+            case 4:
                 return FOUR_OF_A_KIND;
+            case 3:
+                for (int i : numRanks) // Currently doesn't confirm the pair is "not the same as each other"
+                    if (i == 2) return FULL_HOUSE;
+            case 2:
+                int numPairs = 0;
+                for (int i : numRanks)
+                    if (i == 2) numPairs++;
+                return numPairs > 1 ? TWO_PAIR : PAIR;
         }
         return HIGH_CARD;
     }

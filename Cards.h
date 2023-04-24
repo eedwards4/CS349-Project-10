@@ -15,7 +15,7 @@ namespace CardCounter {
     // ENUMS
     enum class Rank: int { TWO, THREE, FOUR, FIVE, SIX, SEVEN, EIGHT, NINE, TEN, JACK, QUEEN, KING, ACE };
     enum class Suit: int { CLUBS, SPADES, HEARTS, DIAMONDS };
-    enum class HAND_TYPE { HIGH_CARD, PAIR, TWO_PAIR, THREE_OF_A_KIND, STRAIGHT, FLUSH, FOUR_OF_A_KIND, STRAIGHT_FLUSH };
+    enum class HAND_TYPE { HIGH_CARD, PAIR, TWO_PAIR, THREE_OF_A_KIND, STRAIGHT, FLUSH, FULL_HOUSE, FOUR_OF_A_KIND, STRAIGHT_FLUSH };
 
     // CLASSES
     class Card {
@@ -63,11 +63,13 @@ namespace CardCounter {
         bool operator!=(const Card& card) const { return rank != card.rank && suit != card.suit; }
         bool operator<(const Card& card) const { return rank < card.rank; }
 
-        int rankAsInt() { return (int)rank; }
-        int suitAsInt() { return (int)suit; }
+        int rankAsInt() const { return (int)rank; }
+        int suitAsInt() const { return (int)suit; }
 
         bool hasRank(Rank r) const { return rank == r; };
         bool hasSuit(Suit s) const { return suit == s; };
+        bool sharesRank(const Card &card) const { return rank == card.rank; };
+        bool sharesSuit(const Card &card) const { return suit == card.suit; };
     private:
         Rank rank;
         Suit suit;
@@ -100,12 +102,11 @@ namespace CardCounter {
     std::string handTypeToStr(HAND_TYPE);
     std::string evalHandType(CardComparer, const Hand&, const Deck&);
     Hand commonCards(const Hand&, const Deck&);
-    std::vector<Hand> handSequences(const Hand&);
+    Hand sequence(const Hand&);
 
-    HAND_TYPE straightFlush(const Hand&);
-    HAND_TYPE fourOfAKind(const Hand&);
-    // implement more methods which return hand_type and receive hand param. We can use these with evalMethods vec in main.
-
+    HAND_TYPE straights(const Hand&);
+    HAND_TYPE flush(const Hand&);
+    HAND_TYPE rankMatches(const Hand&);
 }
 
 

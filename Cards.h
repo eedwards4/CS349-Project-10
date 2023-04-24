@@ -6,6 +6,7 @@
 #include <deque>
 #include <string>
 #include <algorithm>
+#include <iostream>
 
 #ifndef CS349_PROJECT_10_CARDS_H
 #define CS349_PROJECT_10_CARDS_H
@@ -13,7 +14,21 @@
 
 namespace CardCounter {
     // ENUMS
-    enum class Rank: int { TWO, THREE, FOUR, FIVE, SIX, SEVEN, EIGHT, NINE, TEN, JACK, QUEEN, KING, ACE };
+    enum class Rank: int {
+        TWO = 2,
+        THREE = 3,
+        FOUR = 4,
+        FIVE = 5,
+        SIX = 6,
+        SEVEN = 7,
+        EIGHT = 8,
+        NINE = 9,
+        TEN = 10,
+        JACK = 11,
+        QUEEN = 12,
+        KING = 13,
+        ACE = 14
+    };
     enum class Suit: int { CLUBS, SPADES, HEARTS, DIAMONDS };
     enum class HAND_TYPE { HIGH_CARD, PAIR, TWO_PAIR, THREE_OF_A_KIND, STRAIGHT, FLUSH, FULL_HOUSE, FOUR_OF_A_KIND, STRAIGHT_FLUSH };
 
@@ -35,20 +50,40 @@ namespace CardCounter {
 
         explicit Card(const std::string& str) {
             if (str.length() == 2) {
-                int numRankVal = str[0] - '0';
-                int alphRankVal = std::toupper(str[0]) - 'A';
-                int suitVal = std::toupper(str[1]) - 'A';
-                int NUM_NUMBERS = 9, NUM_ALPHAS = 26;
-
-                // Convert rank based on string index 0
-                if (numRankVal >= 0 && numRankVal <= NUM_NUMBERS)
-                    rank = (Rank)numRankVal;
-                if (alphRankVal >= 0 && alphRankVal <= NUM_ALPHAS)
-                    rank = (Rank)alphRankVal;
-
-                // Convert suit based on string index 1
-                if (suitVal >= 0 && suitVal <= NUM_ALPHAS)
-                    suit = (Suit)suitVal;
+                char c = str[0];
+                if (std::isdigit(c))
+                    rank = (Rank)(c - '0');
+                if (std::isalpha(c)) {
+                    switch (c) {
+                        case 'T':
+                            rank = TEN;
+                            break;
+                        case 'J':
+                            rank = JACK;
+                            break;
+                        case 'Q':
+                            rank = QUEEN;
+                            break;
+                        case 'K':
+                            rank = KING;
+                            break;
+                        case 'A':
+                            rank = ACE;
+                    }
+                }
+                switch (str[1]) {
+                    case 'C':
+                        suit = CLUBS;
+                        break;
+                    case 'S':
+                        suit = SPADES;
+                        break;
+                    case 'H':
+                        suit = HEARTS;
+                        break;
+                    case 'D':
+                        suit = DIAMONDS;
+                }
             }
         }
 
@@ -62,6 +97,64 @@ namespace CardCounter {
         bool operator==(const Card& card) const { return rank == card.rank && suit == card.suit; }
         bool operator!=(const Card& card) const { return rank != card.rank && suit != card.suit; }
         bool operator<(const Card& card) const { return rank < card.rank; }
+
+        friend std::ostream& operator<<(std::ostream& os, const Card &card) {
+            std::string cardStr;
+            switch (card.rank) {
+                case TWO:
+                    cardStr.append("2");
+                    break;
+                case THREE:
+                    cardStr.append("3");
+                    break;
+                case FOUR:
+                    cardStr.append("4");
+                    break;
+                case FIVE:
+                    cardStr.append("5");
+                    break;
+                case SIX:
+                    cardStr.append("6");
+                    break;
+                case SEVEN:
+                    cardStr.append("7");
+                    break;
+                case EIGHT:
+                    cardStr.append("8");
+                    break;
+                case NINE:
+                    cardStr.append("9");
+                    break;
+                case TEN:
+                    cardStr.append("T");
+                    break;
+                case JACK:
+                    cardStr.append("J");
+                    break;
+                case QUEEN:
+                    cardStr.append("Q");
+                    break;
+                case KING:
+                    cardStr.append("K");
+                    break;
+                case ACE:
+                    cardStr.append("A");
+            }
+            switch (card.suit) {
+                case CLUBS:
+                    cardStr.append("C");
+                    break;
+                case SPADES:
+                    cardStr.append("S");
+                    break;
+                case HEARTS:
+                    cardStr.append("H");
+                    break;
+                case DIAMONDS:
+                    cardStr.append("D");
+            }
+            return os << cardStr;
+        }
 
         int rankAsInt() const { return (int)rank; }
         int suitAsInt() const { return (int)suit; }
@@ -84,6 +177,13 @@ namespace CardCounter {
             for (const Card &c : vc)
                 push_back(c);
         }
+
+        friend std::ostream& operator<<(std::ostream& os, const Hand& hand) {
+            for (auto it = hand.begin(); it != hand.end() - 1; it++) {
+                os << *it << " ";
+            }
+            return os << hand.back();
+        }
     };
 
     class Deck : public std::deque<Card> {
@@ -94,6 +194,13 @@ namespace CardCounter {
             this->clear();
             for (const Card &c : dd)
                 push_front(c);
+        }
+
+        friend std::ostream& operator<<(std::ostream& os, const Deck& deck) {
+            for (auto it = deck.begin(); it != deck.end() - 1; it++) {
+                os << *it << " ";
+            }
+            return os << deck.back();
         }
     };
 

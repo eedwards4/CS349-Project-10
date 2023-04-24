@@ -2,7 +2,7 @@
 
 namespace CardCounter {
     // Set of all possible orders to discard a hand when drawing up to 5 cards
-    const std::vector<const std::vector<int>> DISCARD_PERMUTATIONS = {
+    const std::vector<std::vector<int>> DISCARD_PERMUTATIONS = {
             {0, 1, 2, 3, 4},
             {0, 1, 2, 4, 3},
             {0, 1, 3, 2, 4},
@@ -73,7 +73,7 @@ namespace CardCounter {
             for (auto discardOrder : DISCARD_PERMUTATIONS) { // use lookup table of permutations of all possible draw orders
                 auto discardPos = discardOrder.begin(); // set discardPos to iterator through discard order permutations
                 do {
-                    for (int j = numDraws; j > 0 && !tempDeck.empty(); j--) { // discard cards and replace them with drawn cards
+                    for (int j = numDraws; j > 0; j--) { // discard cards and replace them with drawn cards
                         tempHand[*discardPos] = tempDeck.front();
                         tempDeck.pop_front();
                         discardPos++;
@@ -85,6 +85,7 @@ namespace CardCounter {
                     tempDeck = deck;
                     discardPos = discardOrder.begin();
                 } while (numDraws < deck.size()); // continue until all cards are drawn}
+                numDraws = 0; // reset numDraws
             }
         }
         return handTypeToStr(highest);

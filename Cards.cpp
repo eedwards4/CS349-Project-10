@@ -31,55 +31,41 @@ namespace CardCounter {
     }
 
 /*
- * Draw elements from deck into hand by order, one by one, and invoke the evaluate method on hand each time
+ * Draw elements from deck into hand by order, one by one, and invoke the evalMethods method on hand each time
  * as the hand eventually grows to a total union of hand and deck. Record calculated hand types and return the
  * highest scoring among them.
  */
-    std::string evalHandType(CardComparer evaluate, const Hand& hand, const Deck &deck) {
+    std::string evalHandType(const std::vector<CardComparer> &evalMethods, const Hand& hand, const Deck &deck) {
         HAND_TYPE highest = HIGH_CARD, temp;
         int numDraws = 0, discardPos;
         Hand tempHand = hand;
         Deck tempDeck = deck;
-        for (int i = 0; i < hand.size(); i++) { // perform draws by discarding elements in left-to-right order,
-                                                // before replacing them, doing so for all 5 draws in all 5 starting
-                                                // discard positions. Does not account for drawing in other orderings.
-            discardPos = i;
-            do {
-                for (int j = numDraws; j > 0 && !tempDeck.empty(); j--){ // discard cards and replace them with drawn cards
-                    tempHand[discardPos] = tempDeck.front();
-                    discardPos = discardPos + 1 < hand.size() ? discardPos + 1 : 0; // wrap discardPos around hand
-                    tempDeck.pop_front();
-                }
-                temp = evaluate(tempHand); // use passed method to evaluate hand_types
-                if (highest < temp) highest = temp;
-                numDraws++;
-                tempHand = hand;
-                tempDeck = deck;
+        for (CardComparer eval : evalMethods) {
+            for (int i = 0; i < hand.size(); i++) { // perform draws by discarding elements in left-to-right order,
+                // before replacing them, doing so for all 5 draws in all 5 starting
+                // discard positions. Does not account for drawing in other orderings.
                 discardPos = i;
-            } while (numDraws < deck.size()); // continue until all cards are drawn
+                do {
+                    for (int j = numDraws;
+                         j > 0 && !tempDeck.empty(); j--) { // discard cards and replace them with drawn cards
+                        tempHand[discardPos] = tempDeck.front();
+                        discardPos = discardPos + 1 < hand.size() ? discardPos + 1 : 0; // wrap discardPos around hand
+                        tempDeck.pop_front();
+                    }
+                    temp = eval(tempHand); // use provided method to evaluate hand_types
+                    if (highest < temp) highest = temp;
+                    numDraws++;
+                    tempHand = hand;
+                    tempDeck = deck;
+                    discardPos = i;
+                } while (numDraws < deck.size()); // continue until all cards are drawn
+            }
         }
         return handTypeToStr(highest);
     }
 
 /*
- * Returns a Hand containing the matching cards from the passed hand and deck
- * Badly implemented atm. Does not draw cards with replacement.
- */
-    Hand commonCards(const Hand &hand, const Deck &deck) {
-        Hand matchedCards;
-        for (const Card &hc : hand) {
-            for (const Card &dc : deck) {
-                if (hc == dc) {
-                    matchedCards.push_back(hc);
-                    matchedCards.push_back(dc);
-                }
-            }
-        }
-        return matchedCards;
-    }
-
-/*
- * Return a vector of all possible sequence in the calling object.
+ * Return a hand of the longest sequence in the passed parameter.
  */
     Hand sequence(const Hand &hand) {
         Hand sequence;
@@ -118,7 +104,7 @@ namespace CardCounter {
         return sequence;
     }
 
-    HAND_TYPE straights(const Hand &hand) {
+    HAND_TYPE straightsOrFlush(const Hand &hand) {
         int STRAIGHT_LEN = 5;
         Hand h = sequence(hand);
         if (h.size() == STRAIGHT_LEN) {
@@ -128,15 +114,13 @@ namespace CardCounter {
             }
             return STRAIGHT_FLUSH;
         }
-        return HIGH_CARD;
-    }
-
-    HAND_TYPE flush(const Hand &hand) {
-        for (auto it = hand.begin() + 1; it != hand.end(); it++) {
-            if (!(it - 1)->sharesSuit(*it))
-                return HIGH_CARD;
+        else {
+            for (auto it = hand.begin() + 1; it != hand.end(); it++) {
+                if (!(it - 1)->sharesSuit(*it))
+                    return HIGH_CARD;
+            }
+            return FLUSH;
         }
-        return FLUSH;
     }
 
     HAND_TYPE rankMatches(const Hand &hand) {

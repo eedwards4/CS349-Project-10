@@ -100,12 +100,10 @@ namespace CardCounter {
     //METHODS
     typedef HAND_TYPE (*CardComparer)(const Hand&); // Type which holds functions with signature "HAND_TYPE funcName(const Hand&)"
     std::string handTypeToStr(HAND_TYPE);
-    std::string evalHandType(CardComparer, const Hand&, const Deck&);
-    Hand commonCards(const Hand&, const Deck&);
+    std::string evalHandType(const std::vector<CardComparer>&, const Hand&, const Deck&);
     Hand sequence(const Hand&);
 
-    HAND_TYPE straights(const Hand&);
-    HAND_TYPE flush(const Hand&);
+    HAND_TYPE straightsOrFlush(const Hand&);
     HAND_TYPE rankMatches(const Hand&);
 }
 

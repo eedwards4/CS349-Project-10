@@ -12,7 +12,7 @@ int main(int argc, char* argv[]) {
     ifstream infile; ofstream outfile;
     CommonLib::initFiles(infile, outfile, argc, argv, "cardCounter");
 
-    std::vector<CardComparer> evalMethods = { straights, flush, rankMatches };
+    std::vector<CardComparer> evalMethods = { straightsOrFlush, rankMatches };
     Hand hand;
     Deck deck;
 
@@ -23,8 +23,7 @@ int main(int argc, char* argv[]) {
 
     // do stuff
 
-    for (auto method : evalMethods)
-        cout << evalHandType(method, hand, deck) << endl;
+    cout << evalHandType(evalMethods, hand, deck) << endl;
 
     return 0;
 }

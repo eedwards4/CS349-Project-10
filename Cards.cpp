@@ -1,6 +1,35 @@
 #include "Cards.h"
 
 namespace CardCounter {
+    // Set of all possible orders to discard a hand when drawing up to 5 cards
+    std::vector<std::vector<int>> DISCARD_PERMUTATIONS ={
+            {0, 1, 2, 3, 4},
+            {0, 1, 2, 4, 3},
+            {0, 1, 3, 2, 4},
+            {0, 1, 3, 4, 2},
+            {0, 1, 4, 2, 3},
+            {0, 1, 4, 3, 2},
+            {0, 2, 1, 3, 4},
+            {0, 2, 1, 4, 3},
+            {0, 2, 3, 1, 4},
+            {0, 2, 3, 4, 1},
+            {0, 2, 4, 1, 3},
+            {0, 2, 4, 3, 1},
+            {0, 3, 1, 2, 4},
+            {0, 3, 1, 4, 2},
+            {0, 3, 2, 1, 4},
+            {0, 3, 2, 4, 1},
+            {0, 3, 4, 1, 2},
+            {0, 3, 4, 2, 1},
+            {0, 4, 1, 2, 3},
+            {0, 4, 1, 3, 2},
+            {0, 4, 2, 1, 3},
+            {0, 4, 2, 3, 1},
+            {0, 4, 3, 1, 2},
+            {0, 4, 3, 2, 1}
+    };
+
+
     using enum HAND_TYPE;
     const int TOTAL_RANKS = 13;
     const int TOTAL_SUITS = 4;
@@ -37,28 +66,26 @@ namespace CardCounter {
  */
     std::string evalHandType(const std::vector<CardComparer> &evalMethods, const Hand& hand, const Deck &deck) {
         HAND_TYPE highest = HIGH_CARD, temp;
-        int numDraws = 0, discardPos;
+        int numDraws = 0;
         Hand tempHand = hand;
         Deck tempDeck = deck;
-        for (CardComparer eval : evalMethods) {
-            for (int i = 0; i < hand.size(); i++) { // perform draws by discarding elements in left-to-right order,
-                // before replacing them, doing so for all 5 draws in all 5 starting
-                // discard positions. Does not account for drawing in other orderings.
-                discardPos = i;
+        for (CardComparer eval: evalMethods) {
+            for (auto discardOrder: DISCARD_PERMUTATIONS) { // use lookup table of permutations of all possible draw orders
+                auto discardPos = discardOrder.begin(); // set discardPos to iterator through discard order permutations
                 do {
                     for (int j = numDraws;
                          j > 0 && !tempDeck.empty(); j--) { // discard cards and replace them with drawn cards
-                        tempHand[discardPos] = tempDeck.front();
-                        discardPos = discardPos + 1 < hand.size() ? discardPos + 1 : 0; // wrap discardPos around hand
+                        tempHand[*discardPos] = tempDeck.front();
                         tempDeck.pop_front();
+                        discardPos++;
                     }
                     temp = eval(tempHand); // use provided method to evaluate hand_types
                     if (highest < temp) highest = temp;
                     numDraws++;
                     tempHand = hand;
                     tempDeck = deck;
-                    discardPos = i;
-                } while (numDraws < deck.size()); // continue until all cards are drawn
+                    discardPos = discardOrder.begin();
+                } while (numDraws < deck.size()); // continue until all cards are drawn}
             }
         }
         return handTypeToStr(highest);

@@ -191,23 +191,20 @@ namespace CardCounter {
  * Return a hand of the longest sequence in the passed parameter.
  */
     Hand sequence(const Hand &hand) {
-        Hand sequence(hand.front()), temp(hand.front()), sortedSelf = hand;
-        Card lastCard = sortedSelf.front();
+        Hand sequence, temp, sortedSelf = hand;
+        Card lastCard;
         int MAX_SEQ_LEN = 5;
         auto cardsInSequence = [](const Card &last, const Card &curr) {
             int rankDiff = curr.rankAsInt() - last.rankAsInt();
-            return rankDiff == (int)Rank::ACE - (int)Rank::FIVE || rankDiff == 1; // The ACE - FIVE figure comes from
-                                                                                  // the state of a sequence with low ACE.
-                                                                                  // The sorted hand will be ordered:
-                                                                                  // TWO, THREE, FOUR, FIVE, ACE when read
-                                                                                  // by loop below, so the rankDiff is
-                                                                                  // ACE - FIVE when the sequence is valid.
+            return rankDiff == 1 || curr.hasRank(Rank::ACE) && last.hasRank(Rank::FIVE);
         };
 
         if (hand.size() == 1)
             return hand;
 
         std::sort(sortedSelf.begin(), sortedSelf.end());
+        sequence = temp = Hand(sortedSelf.front());
+        lastCard = sortedSelf.front();
 
         for (auto seqStart = sortedSelf.begin() + 1; seqStart != sortedSelf.end(); seqStart++) {
             while (cardsInSequence(lastCard, *seqStart)) { // Count up sequence until end
@@ -249,7 +246,7 @@ namespace CardCounter {
         int mostMatches = 0;
         for (int i = 0; i < TOTAL_RANKS; i++) {
             for (const Card &c : hand)
-                numRanks[i] += c.hasRank((Rank) i);
+                numRanks[i] += c.hasRank((Rank) (i + 2)); // Add two to match assignment of elements of Rank enum
             if (mostMatches < numRanks[i]) mostMatches = numRanks[i];
         }
         switch (mostMatches) {
@@ -258,6 +255,7 @@ namespace CardCounter {
             case 3:
                 for (int i : numRanks) // Currently doesn't confirm the pair is "not the same as each other"
                     if (i == 2) return FULL_HOUSE;
+                return THREE_OF_A_KIND;
             case 2:
                 int numPairs = 0;
                 for (int i : numRanks)

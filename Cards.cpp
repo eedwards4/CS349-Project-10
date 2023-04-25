@@ -167,7 +167,7 @@ namespace CardCounter {
         Deck tempDeck = deck;
         for (CardComparer eval : evalMethods) {
             for (auto discardOrder : DISCARD_PERMUTATIONS) { // use lookup table of permutations of all possible draw orders
-                auto discardPos = discardOrder.begin(); // set discardPos to iterator through discard order permutations
+                auto discardPos = discardOrder.begin(); // set discardPos to iterator for discard order permutations
                 do {
                     for (int j = numDraws; j > 0; j--) { // discard cards and replace them with drawn cards
                         tempHand[*discardPos] = tempDeck.front();
@@ -191,23 +191,17 @@ namespace CardCounter {
  * Return a hand of the longest sequence in the passed parameter.
  */
     Hand sequence(const Hand &hand) {
-        Hand sequence, temp, sortedSelf = hand;
-        Card lastCard;
+        Hand sequence, temp, sortedSelf = hand; // a sequence to return, a temp to eval sequences, and a sorted copy
+        Card lastCard; // the previously added card of the sequence for evaluation
         int MAX_SEQ_LEN = 5;
-        auto cardsInSequence = [](const Card &last, const Card &curr) {
-            int rankDiff = curr.rankAsInt() - last.rankAsInt();
-            return rankDiff == 1 || curr.hasRank(Rank::ACE) && last.hasRank(Rank::FIVE);
-        };
-
-        if (hand.size() == 1)
-            return hand;
 
         std::sort(sortedSelf.begin(), sortedSelf.end());
         sequence = temp = Hand(sortedSelf.front());
         lastCard = sortedSelf.front();
 
         for (auto seqStart = sortedSelf.begin() + 1; seqStart != sortedSelf.end(); seqStart++) {
-            while (cardsInSequence(lastCard, *seqStart)) { // Count up sequence until end
+            while (seqStart->rankAsInt() - lastCard.rankAsInt() == 1 ||
+                   seqStart->hasRank(Rank::ACE) && lastCard.hasRank(Rank::FIVE)) { // Count up sequence until end
                 if (temp.size() >= MAX_SEQ_LEN) // Sequences capped at length of 5
                     break;
                 temp.push_back(*seqStart); // append cards to continuing sequence

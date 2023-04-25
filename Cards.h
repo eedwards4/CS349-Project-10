@@ -14,7 +14,7 @@
 
 namespace CardCounter {
     // ENUMS
-    enum class Rank: int {
+    enum class Rank {
         TWO = 2,
         THREE = 3,
         FOUR = 4,
@@ -29,7 +29,7 @@ namespace CardCounter {
         KING = 13,
         ACE = 14
     };
-    enum class Suit: int { CLUBS, SPADES, HEARTS, DIAMONDS };
+    enum class Suit { CLUBS, SPADES, HEARTS, DIAMONDS };
     enum class HAND_TYPE { HIGH_CARD, PAIR, TWO_PAIR, THREE_OF_A_KIND, STRAIGHT, FLUSH, FULL_HOUSE, FOUR_OF_A_KIND, STRAIGHT_FLUSH };
 
     // CLASSES

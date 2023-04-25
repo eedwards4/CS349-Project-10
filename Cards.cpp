@@ -2,7 +2,7 @@
 
 namespace CardCounter {
     // Set of all possible orders to discard a hand when drawing up to 5 cards
-    const std::vector<std::vector<int>> DISCARD_PERMUTATIONS = {
+    const std::vector<std::vector<uint8_t>> DISCARD_PERMUTATIONS = {
             { 0,1,2,3,4 },
             { 1,0,2,3,4 },
             { 2,0,1,3,4 },
@@ -137,7 +137,7 @@ namespace CardCounter {
             case PAIR:
                 return "one_pair";
             case TWO_PAIR:
-                return "two_pair";
+                return "two_pairs";
             case THREE_OF_A_KIND:
                 return "three_of_a_kind";
             case STRAIGHT:
@@ -157,7 +157,7 @@ namespace CardCounter {
 
 /*
  * Draw elements from deck into hand by order, one by one, and invoke the evalMethods method on hand each time
- * as the hand eventually grows to a total union of hand and deck. Record calculated hand types and return the
+ * as the every hand order configuration has been checked. Record calculated hand types and return the
  * highest scoring among them.
  */
     std::string evalHandType(const std::vector<CardComparer> &evalMethods, const Hand& hand, const Deck &deck) {
@@ -180,7 +180,7 @@ namespace CardCounter {
                     tempHand = hand;
                     tempDeck = deck;
                     discardPos = discardOrder.begin();
-                } while (numDraws < deck.size()); // continue until all cards are drawn
+                } while (numDraws <= deck.size()); // continue until all cards are drawn
                 numDraws = 0; // reset numDraws
             }
         }
